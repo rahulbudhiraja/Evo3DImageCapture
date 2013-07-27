@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.net.Uri;
@@ -24,8 +25,12 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public class MainActivity extends Activity {
@@ -40,35 +45,70 @@ public class MainActivity extends Activity {
 	    this.imageView = (ImageView)this.findViewById(R.id.imageView1);
 	    Button photoButton = (Button) this.findViewById(R.id.button1);
 	    
-	    
-	    
-	    
 	    FileObserver observer = new FileObserver(android.os.Environment.getExternalStorageDirectory().toString() + "/DCIM/100MEDIA/") { // set up a file observer to watch this directory on sd card
             @SuppressWarnings("deprecation")
 			@Override
         public void onEvent(int event, String file) {
             	Log.d("fired","fired"+" Event:"+event);
             	
-//            	Intent intent = new Intent(getBaseContext(), MainActivity.class);
-//            	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // You need this if starting
-//            	                                                //  the activity from a service
-//            	intent.setAction(Intent.ACTION_MAIN);
-//            	intent.addCategory(Intent.CATEGORY_LAUNCHER);
-//            	startActivity(intent);
-            	
             	PackageManager pm = getBaseContext().getPackageManager();
             	
-            if(event == FileObserver.CREATE && !file.equals(".probe")){ // check if its a "create" and not equal to .probe because thats created every time camera is launched
+            if(event == FileObserver.CLOSE_WRITE && !file.equals(".probe")){ // check if its a "create" and not equal to .probe because thats created every time camera is launched
             	{
             		Log.d("fds", "File created [" + android.os.Environment.getExternalStorageDirectory().toString() + "/DCIM/100MEDIA/" + file + "]");
             	i++;
             	Log.d("i value","i ="+i);
             	try
                 {
-                  Intent it = pm.getLaunchIntentForPackage("com.example.cameraintent");
+                       
+                  //int t=splitmpointojpg(Environment.getExternalStorageDirectory().toString() + "/DCIM/100MEDIA/" + file);
+                  
+                  String jpsfilename=Environment.getExternalStorageDirectory().toString() + "/DCIM/100MEDIA/" + file;
+                  String jpgfilename=jpsfilename.substring(0,jpsfilename.length()-1)+"g";
+                  
+                  Log.d("File name","name "+jpsfilename);
+                  
+                  File from      = new File("",jpsfilename);
+                  File to        = new File("",jpgfilename);
+                  from.renameTo(to);
+                             
+                  Log.i("From path is", from.toString());
+                  Log.i("To path is", to.toString());
+                  
+                  Bitmap fullsize_bitmap=BitmapFactory.decodeFile(jpgfilename);
+                  Bitmap left_img=Bitmap.createBitmap(fullsize_bitmap, 0,0,fullsize_bitmap.getWidth()/2,fullsize_bitmap.getHeight());
+                
+                  Bitmap right_img=Bitmap.createBitmap(fullsize_bitmap,fullsize_bitmap.getWidth()/2,0,fullsize_bitmap.getWidth()/2,fullsize_bitmap.getHeight());
+                  
+                  OutputStream outputStream,outputStream2;
+                  
+          		try {
+          			outputStream = new FileOutputStream ( Environment.getExternalStorageDirectory().getPath()+"/SimpleImageCapture/img_left.jpg");
+          	        left_img.compress(CompressFormat.JPEG, 100, outputStream);
+          		
+          		  outputStream2 = new FileOutputStream ( Environment.getExternalStorageDirectory().getPath()+"/SimpleImageCapture/img_right.jpg");
+          		right_img.compress(CompressFormat.JPEG, 100, outputStream2);
+        		
+          		
+            	} catch (FileNotFoundException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		} catch (IOException e) {
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		} 
+                  
+                  Log.d("yp", "blah");
+                  
+                  
+          		 Intent it = pm.getLaunchIntentForPackage("com.example.cameraintent");
 
-                  if (null != it)
-                	  getBaseContext().startActivity(it);
+                 
+                 
+	               
+	               if (null != it)
+	             	  getBaseContext().startActivity(it);
+	               
                 }
 
                 catch (ActivityNotFoundException e)
@@ -80,8 +120,11 @@ public class MainActivity extends Activity {
             }
         }
     };
+    
     observer.startWatching(); // start the observer
 	    
+    System.loadLibrary("mposplit");
+    
 	    photoButton.setOnClickListener(new View.OnClickListener() {
 
 	        @Override
@@ -114,19 +157,11 @@ public class MainActivity extends Activity {
 	        }
 	    });
 	}
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	    super.onActivityResult(requestCode, resultCode, data);
-	    
-	    Log.d("Request code:"+requestCode,"tea");
-	    
-	    switch(requestCode){
-	    case CAMERA_REQUEST:
-	    
-Log.d("yea","Passing");
-Log.d("Fuck","yeap");
-System.exit(1);
-	        }
-	    }
+	
+	
+	 public native int splitmpointojpg(String path);
+	 
+	 
 	}
 
 	
