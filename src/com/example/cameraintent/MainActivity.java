@@ -75,7 +75,15 @@ public class MainActivity extends Activity {
                   Log.i("From path is", from.toString());
                   Log.i("To path is", to.toString());
                   
-                  Bitmap fullsize_bitmap=BitmapFactory.decodeFile(jpgfilename);
+                  BitmapFactory.Options option = new BitmapFactory.Options();
+                  option.inSampleSize =2;
+                  option.inScaled = true;
+                  
+                  Bitmap fullsize_bitmap=BitmapFactory.decodeFile(jpgfilename,option);
+                  
+                  
+                  
+                  
                   Bitmap left_img=Bitmap.createBitmap(fullsize_bitmap, 0,0,fullsize_bitmap.getWidth()/2,fullsize_bitmap.getHeight());
                 
                   Bitmap right_img=Bitmap.createBitmap(fullsize_bitmap,fullsize_bitmap.getWidth()/2,0,fullsize_bitmap.getWidth()/2,fullsize_bitmap.getHeight());
